@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2048</title>
+     <!-- 添加缓存控制标签 -->
+     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+     <meta http-equiv="Pragma" content="no-cache">
+     <meta http-equiv="Expires" content="0">
      <!-- 添加以下标签使应用更像原生应用 -->
      <meta name="mobile-web-app-capable" content="yes">
      <meta name="apple-mobile-web-app-capable" content="yes">
@@ -802,8 +806,27 @@
         
         // 初始化游戏
         document.addEventListener('DOMContentLoaded', function() {
-            var game = new Game2048(4);
-            console.log('游戏已初始化');
+        // 添加版本检查
+        const currentVersion = '1.0.1';
+        const storedVersion = localStorage.getItem('gameVersion');
+    
+        if (storedVersion !== currentVersion) {
+            // 版本不匹配，清除缓存
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    return Promise.all(
+                        cacheNames.map(function(cacheName) {
+                            return caches.delete(cacheName);
+                        })
+                    );
+                });
+            }
+            localStorage.setItem('gameVersion', currentVersion);
+            console.log('缓存已清除，版本已更新');
+        }
+    
+        var game = new Game2048(4);
+        console.log('游戏已初始化');
         });
     </script>
 </body>
