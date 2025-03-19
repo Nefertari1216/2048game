@@ -21,6 +21,9 @@
      <meta name="msapplication-navbutton-color" content="#faf8ef">
      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
      <meta name="theme-color" content="#faf8ef">
+     <meta name="msapplication-starturl" content="./">
+     <!-- 添加下面这行确保PWA能正确启动 -->
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
      <link rel="manifest" href="manifest.json">
      <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
      <!-- 其余样式保持不变 -->
@@ -235,16 +238,32 @@
     </div>
     
     <script>
-                // 注册Service Worker
-                if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker 注册成功:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker 注册失败:', error);
+                // 添加延迟确保页面完全加载
+                setTimeout(() => {
+                    navigator.serviceWorker.register('./service-worker.js')
+                        .then(registration => {
+                            console.log('Service Worker 注册成功:', registration.scope);
+                        })
+                        .catch(error => {
+                            console.log('Service Worker 注册失败:', error);
+                            // 如果注册失败，尝试清除缓存并重新加载
+                            if ('caches' in window) {
+                                caches.keys().then(function(cacheNames) {
+                                    return Promise.all(
+                                        cacheNames.map(function(cacheName) {
+                                            console.log('删除缓存:', cacheName);
+                                            return caches.delete(cacheName);
+                                        })
+                                    );
+                                }).then(() => {
+                                    console.log('缓存已清除，尝试重新加载');
+                                    window.location.reload();
+                            });
+                        }
                     });
+                }, 1000);
             });
         }
 
@@ -814,27 +833,43 @@
         
         // 初始化游戏
         document.addEventListener('DOMContentLoaded', function() {
-        // 添加版本检查
-        const currentVersion = '1.0.1';
-        const storedVersion = localStorage.getItem('gameVersion');
-    
-        if (storedVersion !== currentVersion) {
-            // 版本不匹配，清除缓存
-            if ('caches' in window) {
-                caches.keys().then(function(cacheNames) {
-                    return Promise.all(
-                        cacheNames.map(function(cacheName) {
-                            return caches.delete(cacheName);
-                        })
-                    );
-                });
+            // 添加全局错误处理
+            window.onerror = function(message, source, lineno, colno, error) {
+                console.error('游戏错误:', message, source, lineno, colno);
+                alert('游戏加载出错: ' + message);
+                return false;
+            };
+
+            // 添加版本检查
+            const currentVersion = '1.0.2';
+            const storedVersion = localStorage.getItem('gameVersion');
+
+            if (storedVersion !== currentVersion) {
+                // 版本不匹配，清除缓存
+                if ('caches' in window) {
+                    caches.keys().then(function(cacheNames) {
+                        return Promise.all(
+                            cacheNames.map(function(cacheName) {
+                                return caches.delete(cacheName);
+                            })
+                        );
+                    });
+                }
+                localStorage.setItem('gameVersion', currentVersion);
+                console.log('缓存已清除，版本已更新');
             }
-            localStorage.setItem('gameVersion', currentVersion);
-            console.log('缓存已清除，版本已更新');
-        }
-    
-        var game = new Game2048(4);
-        console.log('游戏已初始化');
+
+            try {
+                console.log('开始初始化游戏...');
+                var game = new Game2048(4);
+                console.log('游戏已初始化');
+                
+                // 确保游戏容器可见
+                document.getElementById('game-container').style.display = 'block';
+            } catch (e) {
+                console.error('游戏初始化失败:', e);
+                alert('游戏初始化失败: ' + e.message);
+            }
         });
     </script>
 </body>
