@@ -42,12 +42,33 @@ self.addEventListener('activate', event => {
 
 // 拦截请求并从缓存中响应
 self.addEventListener('fetch', event => {
+  // 添加安全头信息
+  const securityHeaders = {
+    'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+  };
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => {
         // 如果找到缓存的响应，则返回缓存的值
         if (response) {
-          return response;
+          // 添加安全头信息到缓存的响应
+          const enhancedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers)
+          });
+          
+          // 添加安全头信息
+          Object.keys(securityHeaders).forEach(key => {
+            enhancedResponse.headers.set(key, securityHeaders[key]);
+          });
+          
+          return enhancedResponse;
         }
         
         // 否则发起网络请求
@@ -67,7 +88,23 @@ self.addEventListener('fetch', event => {
                 cache.put(event.request, responseToCache);
               });
               
-            return response;
+             // 添加安全头信息到网络响应
+             const enhancedResponse = new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: new Headers(response.headers)
+            });
+            
+            // 添加安全头信息
+            Object.keys(securityHeaders).forEach(key => {
+              enhancedResponse.headers.set(key, securityHeaders[key]);
+            });
+            
+            return enhancedResponse;
+          })
+          .catch(error => {
+            console.error('Fetch失败:', error);
+            return new Response('网络请求失败，请检查您的网络连接');
           });
       })
   );
