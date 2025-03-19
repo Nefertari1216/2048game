@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048图标生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #faf8ef;
+            color: #776e65;
+        }
+        canvas {
+            border: 1px solid #bbada0;
+            margin: 10px;
+            background: #edc22e;
+        }
+        .icons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .icon-item {
+            text-align: center;
+            margin: 10px;
+        }
+        button {
+            background: #8f7a66;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px 0;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>2048 PWA图标生成器</h1>
+    <p>点击下方按钮生成所有需要的图标尺寸</p>
+    
+    <button id="generate">生成所有图标</button>
+    <button id="download-all">下载所有图标</button>
+    
+    <div class="icons-container" id="icons-container"></div>
+    
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const iconContainer = document.getElementById('icons-container');
+        
+        function drawIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // 背景
+            ctx.fillStyle = '#edc22e';
+            ctx.fillRect(0, 0, size, size);
+            
+            // 2048文字
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.3}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('2048', size / 2, size / 2);
+            
+            return canvas;
+        }
+        
+        document.getElementById('generate').addEventListener('click', () => {
+            iconContainer.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = drawIcon(size);
+                const div = document.createElement('div');
+                div.className = 'icon-item';
+                
+                const label = document.createElement('p');
+                label.textContent = `${size}x${size}`;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = '下载';
+                downloadBtn.addEventListener('click', () => {
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}x${size}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+                
+                div.appendChild(canvas);
+                div.appendChild(label);
+                div.appendChild(downloadBtn);
+                iconContainer.appendChild(div);
+            });
+        });
+        
+        document.getElementById('download-all').addEventListener('click', () => {
+            sizes.forEach(size => {
+                const canvas = drawIcon(size);
+                const link = document.createElement('a');
+                link.download = `icon-${size}x${size}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+    </script>
+</body>
+</html>
