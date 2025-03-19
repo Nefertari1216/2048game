@@ -223,8 +223,8 @@
     </div>
     
     <script>
-        // 注册Service Worker
-        if ('serviceWorker' in navigator) {
+                // 注册Service Worker
+                if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
@@ -235,17 +235,7 @@
                     });
             });
         }
-        
-        // 现有JavaScript代码保持不变
-        class Game2048 {
-            // 现有代码保持不变
-        }
-        
-        // 初始化游戏
-        var game = new Game2048(4);
-    </script>
 
-    <script>
         class Game2048 {
             constructor(size = 4) {
                 this.size = size;
@@ -811,7 +801,10 @@
         }
         
         // 初始化游戏
-        var game = new Game2048(4);
+        document.addEventListener('DOMContentLoaded', function() {
+            var game = new Game2048(4);
+            console.log('游戏已初始化');
+        });
     </script>
 </body>
 </html>
